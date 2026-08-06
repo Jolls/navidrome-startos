@@ -25,9 +25,10 @@ Package is built out and `tsc`/`s9pk pack` are green, and is installed on the de
       fully explained (didn't dig into StartOS's LXC id-mapping scheme to confirm
       *why*), but empirically a non-issue as of this test. Worth re-confirming this
       holds on other StartOS versions/hosts before relying on it.
-- [ ] File Browser as a music source (only Nextcloud has been exercised so far) —
-      subfolder is relative to its storage root directly (e.g. `Music`), no `data/`
-      prefix needed there (File Browser's `data` volume mounts 1:1 at `/srv`).
+- [x] File Browser as a music source: **works**, confirmed on the dev box
+      (2026-08-05). Subfolder is relative to its storage root directly (e.g. `Music`),
+      no `data/` prefix needed there (File Browser's `data` volume mounts 1:1 at
+      `/srv`).
 
 ## Blocked
 
@@ -51,20 +52,17 @@ Package is built out and `tsc`/`s9pk pack` are green, and is installed on the de
       *same* subfolder path), confirm playlists/users/history carry over and stale
       `-wal`/`-shm` files don't linger. Also confirm it's blocked while the service
       is running.
-- [ ] Backup, then restore, and confirm `store.json` (media-source selection *and* the
-      new subpath fields) survives and the service starts cleanly (still needs its
-      dependency mounted again).
-- [ ] Decide on `packageRepo` (currently `https://github.com/Jolls/navidrome-startos`,
-      matching this workspace's other packages) once a real remote exists, and push.
-- [ ] Exercise the **Configure Navidrome** action end-to-end with a real
-      Multi-Scrobbler install: enable the scrobbling toggle, confirm `ND_LISTENBRAINZ_BASEURL`
-      lands in the running container pointed at Multi-Scrobbler's bridge address (not
-      `localhost`), and that a play in Navidrome shows up as a scrobble in
-      Multi-Scrobbler's dashboard/logs. Also confirm the daemon restarts cleanly when
-      toggling on/off and when Multi-Scrobbler itself is stopped/uninstalled while
-      enabled (should not crash-loop; env vars should drop out per
-      service-to-service.md's "absent means absent" rule — verify via
-      `start-cli package attach navidrome -n navidrome-sub -- env | grep LISTENBRAINZ`).
+- [x] Backup, then restore: confirmed working a while back, before this session's
+      `store.json` additions (`recentlyAddedByModTime`, `scannerSchedule`, `logLevel`,
+      `sessionTimeout`). Since these are plain fields on the same file with `.catch()`
+      defaults, restore should carry them the same way — but worth a quick re-check
+      next time a backup/restore happens, rather than assuming.
+- [x] Exercise the **Configure Navidrome** action end-to-end with a real
+      Multi-Scrobbler install: confirmed working (2026-08-05) — scrobbling toggle
+      reaches a real Multi-Scrobbler instance. Not separately re-confirmed: daemon
+      behavior when Multi-Scrobbler is stopped/uninstalled while the toggle is still
+      enabled (should not crash-loop; env vars should drop per service-to-service.md's
+      "absent means absent" rule).
 - [ ] Exercise the **Sort "Recently Added" by File Modification Time** toggle in the
       same action: enable it, restart, confirm `ND_RECENTLYADDEDBYMODTIME=true` lands
       in the running container (`start-cli package attach navidrome -n navidrome-sub
