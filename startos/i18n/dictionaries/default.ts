@@ -35,11 +35,24 @@ const dict = {
   'Import Existing Database': 24,
   "Replace Navidrome's database with a previously exported navidrome.db file.": 25,
   'This permanently replaces the current database and cannot be undone. Navidrome stores each track under the exact path it was scanned at — the imported database only matches your library if the File Browser / Nextcloud subfolder(s) configured in Select Music Sources are identical to the ones the source instance used. A mismatch will not corrupt anything, but tracks will show as missing until you re-scan.': 26,
-  // actions/scrobbling.ts
+  // actions/settings.ts
   'Scrobble to Multi-Scrobbler': 27,
   "Point Navidrome's ListenBrainz integration at the Multi-Scrobbler dependency's bridge address, so every play is scrobbled there. Requires Multi-Scrobbler to be installed.": 28,
-  'Configure Scrobbling': 29,
-  'Scrobble plays to Multi-Scrobbler via ListenBrainz': 30,
+  'Configure Navidrome': 29,
+  'Scrobbling, library, and logging settings': 30,
+  'Sort "Recently Added" by File Modification Time': 31,
+  'By default, Navidrome\'s "Recently Added" sorts by when a track was imported into the database. Enable this to sort by the file\'s modification time on disk instead — useful if you\'re importing an existing library and want "recently added" to reflect when the files themselves were added, not when Navidrome scanned them. Sets ND_RECENTLYADDEDBYMODTIME.': 32,
+  'Scanner Schedule': 33,
+  'Cron expression for automatic library rescans (e.g. "0 */6 * * *" for every 6 hours). Leave blank to disable scheduled scans. Sets ND_SCANNER_SCHEDULE.': 34,
+  'Log Level': 35,
+  'Verbosity of Navidrome logs, viewable via the service Logs tab. Sets ND_LOGLEVEL.': 36,
+  Error: 37,
+  Warn: 38,
+  Info: 39,
+  Debug: 40,
+  Trace: 41,
+  'Session Timeout': 42,
+  'How long an idle web UI session stays logged in. Accepts durations like "24h" or "45m". Leave blank to use Navidrome\'s own default (48h). Sets ND_SESSIONTIMEOUT.': 43,
 } as const
 
 /**

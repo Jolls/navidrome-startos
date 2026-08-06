@@ -6,6 +6,12 @@ const shape = z.object({
   filebrowserSubpath: z.string().nullable().catch(null),
   nextcloudSubpath: z.string().nullable().catch(null),
   scrobbleToMultiScrobbler: z.boolean().catch(false),
+  recentlyAddedByModTime: z.boolean().catch(false),
+  scannerSchedule: z.string().nullable().catch(null),
+  logLevel: z
+    .enum(['error', 'warn', 'info', 'debug', 'trace'])
+    .catch('info'),
+  sessionTimeout: z.string().nullable().catch(null),
 })
 
 export const store = FileHelper.json(

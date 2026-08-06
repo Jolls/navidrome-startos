@@ -17,6 +17,10 @@ export const main = sdk.setupMain(async ({ effects }) => {
     filebrowserSubpath,
     nextcloudSubpath,
     scrobbleToMultiScrobbler,
+    recentlyAddedByModTime,
+    scannerSchedule,
+    logLevel,
+    sessionTimeout,
   } = (await store.read().const(effects)) || {}
 
   // "localhost" inside Navidrome's container refers to its own container, not
@@ -97,6 +101,11 @@ export const main = sdk.setupMain(async ({ effects }) => {
       // init system, so runAsInit is not needed.
       command: sdk.useEntrypoint(),
       env: {
+        // Matches the image's own default (confirmed via `docker image
+        // inspect deluan/navidrome`) and the mountpoint mounts is built
+        // against above — set explicitly so the two stay coupled instead of
+        // relying on the image default silently matching our mount target.
+        ND_MUSICFOLDER: '/music',
         ...(multiScrobblerAddress
           ? {
               ND_LISTENBRAINZ_ENABLED: 'true',
@@ -107,6 +116,10 @@ export const main = sdk.setupMain(async ({ effects }) => {
               ND_LISTENBRAINZ_BASEURL: `http://${multiScrobblerAddress}/1/`,
             }
           : {}),
+        ND_RECENTLYADDEDBYMODTIME: recentlyAddedByModTime ? 'true' : 'false',
+        ND_LOGLEVEL: logLevel || 'info',
+        ...(scannerSchedule ? { ND_SCANNER_SCHEDULE: scannerSchedule } : {}),
+        ...(sessionTimeout ? { ND_SESSIONTIMEOUT: sessionTimeout } : {}),
       },
     },
     ready: {

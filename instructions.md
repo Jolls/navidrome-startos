@@ -42,11 +42,19 @@ If you're moving from another Navidrome instance (StartOS or otherwise), you can
 
 The service must be **stopped** to run this action. Before running it, make sure the File Browser/Nextcloud subfolder(s) set in **Select Music Sources** are identical to the ones the source instance used — Navidrome's database records each track by its exact scanned path, so a different subfolder means the imported database won't match what's mounted here, and tracks will show as missing until you rescan. This does not corrupt anything; it's recoverable by re-running **Select Music Sources** with the matching paths, or by rescanning.
 
-### Configure Scrobbling
+### Configure Navidrome
 
-If you have Multi-Scrobbler installed, turn on the **Scrobble to Multi-Scrobbler** toggle in this action to send every play there automatically, using Navidrome's built-in ListenBrainz integration pointed at Multi-Scrobbler instead of the real listenbrainz.org. Restart the service afterward for the change to take effect. Turning it off (or uninstalling Multi-Scrobbler) stops sending scrobbles there; it does not touch any other scrobbling you've set up directly in Navidrome.
+This action bundles settings that don't have an equivalent in Navidrome's own admin UI:
 
-This toggle alone is not enough to make scrobbles land — you still have to do two things by hand, in the two apps' own UIs (not this action, and not automated by this package):
+- **Scrobble to Multi-Scrobbler**: if you have Multi-Scrobbler installed, turn this on to send every play there automatically, using Navidrome's built-in ListenBrainz integration pointed at Multi-Scrobbler instead of the real listenbrainz.org. Turning it off (or uninstalling Multi-Scrobbler) stops sending scrobbles there; it does not touch any other scrobbling you've set up directly in Navidrome.
+- **Sort "Recently Added" by File Modification Time**: by default, Navidrome's "Recently Added" view sorts by when a track was imported into the database. Turn this on to sort by the file's modification time on disk instead — handy if you're importing an existing library and want "recently added" to reflect when the files themselves were added, not when Navidrome scanned them.
+- **Scanner Schedule**: a cron expression (e.g. `0 */6 * * *` for every 6 hours) to have Navidrome rescan your library automatically on a schedule. Leave blank to rely on Navidrome's file-watcher instead (it already rescans shortly after files change).
+- **Log Level**: how verbose Navidrome's logs are, viewable from this service's Logs tab. Turn up to `debug` or `trace` when troubleshooting; leave at `info` otherwise.
+- **Session Timeout**: how long you can stay idle in the web UI before being logged out, e.g. `24h` or `45m`. Leave blank to use Navidrome's own default (48 hours).
+
+Restart the service afterward for any of these changes to take effect.
+
+The scrobbling toggle alone is not enough to make scrobbles land — you still have to do two things by hand, in the two apps' own UIs (not this action, and not automated by this package):
 
 1. In Multi-Scrobbler, add (or check for) a source of type `endpointlz` for Navidrome, with a `data.token` value — any string you make up, it's a shared secret you're inventing, not one issued by either app.
 2. In Navidrome, log in as the user you want to scrobble, go to **Settings → your user → Scrobble to ListenBrainz**, and paste the *exact same* token string from step 1.

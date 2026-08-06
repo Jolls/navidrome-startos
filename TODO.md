@@ -56,8 +56,8 @@ Package is built out and `tsc`/`s9pk pack` are green, and is installed on the de
       dependency mounted again).
 - [ ] Decide on `packageRepo` (currently `https://github.com/Jolls/navidrome-startos`,
       matching this workspace's other packages) once a real remote exists, and push.
-- [ ] Exercise the new **Configure Scrobbling** action end-to-end with a real
-      Multi-Scrobbler install: enable the toggle, confirm `ND_LISTENBRAINZ_BASEURL`
+- [ ] Exercise the **Configure Navidrome** action end-to-end with a real
+      Multi-Scrobbler install: enable the scrobbling toggle, confirm `ND_LISTENBRAINZ_BASEURL`
       lands in the running container pointed at Multi-Scrobbler's bridge address (not
       `localhost`), and that a play in Navidrome shows up as a scrobble in
       Multi-Scrobbler's dashboard/logs. Also confirm the daemon restarts cleanly when
@@ -65,3 +65,20 @@ Package is built out and `tsc`/`s9pk pack` are green, and is installed on the de
       enabled (should not crash-loop; env vars should drop out per
       service-to-service.md's "absent means absent" rule — verify via
       `start-cli package attach navidrome -n navidrome-sub -- env | grep LISTENBRAINZ`).
+- [ ] Exercise the **Sort "Recently Added" by File Modification Time** toggle in the
+      same action: enable it, restart, confirm `ND_RECENTLYADDEDBYMODTIME=true` lands
+      in the running container (`start-cli package attach navidrome -n navidrome-sub
+      -- env | grep RECENTLYADDED`) and that Navidrome's "Recently Added" view actually
+      reorders by file mtime instead of import time.
+- [ ] Exercise the new **Scanner Schedule**, **Log Level**, and **Session Timeout**
+      fields in **Configure Navidrome**: set a cron expression, confirm
+      `ND_SCANNER_SCHEDULE` lands in the container and a scheduled scan actually fires;
+      set Log Level to `debug`, confirm log verbosity visibly changes in the Logs tab;
+      set a short Session Timeout (e.g. `2m`), confirm the web UI session actually
+      expires around that mark. Also confirm leaving Scanner Schedule/Session Timeout
+      blank correctly omits `ND_SCANNER_SCHEDULE`/`ND_SESSIONTIMEOUT` from the
+      container's env (`start-cli package attach navidrome -n navidrome-sub -- env |
+      grep -E 'SCANNER_SCHEDULE|SESSIONTIMEOUT'`) rather than sending an empty string.
+- [ ] Confirm `ND_MUSICFOLDER=/music` (now set explicitly in `main.ts` rather than
+      relying on the image default) doesn't change scanning behavior versus the
+      previous implicit-default build — should be a no-op verification.

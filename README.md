@@ -89,15 +89,21 @@ connect to it. See <https://github.com/navidrome/navidrome>.
 
 | StartOS-Managed                                     | Upstream-Managed                                                                                              |
 | ---------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------- |
-| Which dependency service(s) are mounted at `/music/*` | Everything else — scan settings, transcoding, users, themes, Subsonic clients, playlists, library management |
+| Which dependency service(s) are mounted at `/music/*`, and `ND_MUSICFOLDER` pointing at that mount | Everything else — scan settings, transcoding, users, themes, Subsonic clients, playlists, library management |
 | Whether scrobbles are sent to Multi-Scrobbler (`ND_LISTENBRAINZ_*`) | — |
+| Whether "Recently Added" sorts by file mtime (`ND_RECENTLYADDEDBYMODTIME`) | — |
+| Scanner cron schedule (`ND_SCANNER_SCHEDULE`), log level (`ND_LOGLEVEL`), session timeout (`ND_SESSIONTIMEOUT`) | — |
 
-Beyond the image's own defaults (`ND_MUSICFOLDER=/music`,
-`ND_DATAFOLDER=/data`, `ND_CONFIGFILE=/data/navidrome.toml`,
-`ND_PORT=4533`), this package sets `ND_LISTENBRAINZ_ENABLED` and
-`ND_LISTENBRAINZ_BASEURL` **only** when the **Configure Scrobbling** action
-has enabled scrobbling to Multi-Scrobbler — see
-[Dependencies](#dependencies).
+`startos/main.ts` sets `ND_MUSICFOLDER=/music` explicitly, matching both
+`mounts`' mountpoint above and the image's own built-in default (confirmed
+via `docker image inspect deluan/navidrome`) — kept explicit so the two stay
+coupled rather than relying on an implicit match. Beyond that and the
+image's other own defaults (`ND_DATAFOLDER=/data`,
+`ND_CONFIGFILE=/data/navidrome.toml`, `ND_PORT=4533`), this package sets
+`ND_LISTENBRAINZ_ENABLED` and `ND_LISTENBRAINZ_BASEURL` **only** when the
+**Configure Navidrome** action has enabled scrobbling to Multi-Scrobbler —
+see [Dependencies](#dependencies). `ND_RECENTLYADDEDBYMODTIME` is always
+set, reflecting that same action's toggle (image default is `false`).
 
 ## Network Access and Interfaces
 
@@ -128,13 +134,18 @@ Subsonic API alongside the web player on one port.
 - **Behavior**: writes the uploaded file to `main` volume's `navidrome.db`, then removes any stale `navidrome.db-wal`/`navidrome.db-shm` so SQLite doesn't replay a WAL log against a database it doesn't match.
 - **Caveat surfaced via the action's `warning`**: Navidrome stores each track by the exact path it was scanned at. The imported database only lines up with this instance's library if the File Browser/Nextcloud subfolder(s) configured in **Select Music Sources** are identical to what the source instance used. A mismatch isn't destructive — tracks just show as missing until rescanned.
 
-### Configure Scrobbling
+### Configure Navidrome
 
-- **Purpose**: enable scrobbling every play to the optional Multi-Scrobbler dependency, by pointing Navidrome's built-in ListenBrainz integration at Multi-Scrobbler's ListenBrainz-compatible submission endpoint instead of the real listenbrainz.org.
+- **Purpose**: scrobbling, library-display, and logging settings that map to Navidrome env vars, bundled into one action. Deliberately limited to settings with **no equivalent in Navidrome's own admin UI** — everything else (themes, per-user prefs, transcoding, playlists, etc.) stays upstream-managed; see [Configuration Management](#configuration-management).
 - **Visibility**: always visible.
 - **Availability**: any service status.
-- **Inputs**: a single toggle, "Scrobble to Multi-Scrobbler" (default off).
-- **Behavior**: when enabled, `startos/main.ts` resolves Multi-Scrobbler's bridge address (imported from `multi-scrobbler-startos`'s `uiHostId`/`uiPort`) and sets `ND_LISTENBRAINZ_ENABLED=true` and `ND_LISTENBRAINZ_BASEURL=http://<bridge-address>/1/` on the daemon. If Multi-Scrobbler isn't installed or isn't running, the bridge address resolves to `null` and **both env vars are omitted** — Navidrome falls back to its own defaults (real ListenBrainz, or disabled if you've turned that off yourself) rather than being pointed at a dead address. Toggling this restarts the daemon.
+- **Inputs**:
+  - "Scrobble to Multi-Scrobbler" (toggle, default off): enable scrobbling every play to the optional Multi-Scrobbler dependency, by pointing Navidrome's built-in ListenBrainz integration at Multi-Scrobbler's ListenBrainz-compatible submission endpoint instead of the real listenbrainz.org.
+  - 'Sort "Recently Added" by File Modification Time' (toggle, default off): sets `ND_RECENTLYADDEDBYMODTIME`. Switches "Recently Added" from sorting by database-import time to sorting by each file's on-disk modification time — useful when importing an existing library.
+  - "Scanner Schedule" (text, optional, blank by default): a cron expression for automatic library rescans (e.g. `0 */6 * * *`). Sets `ND_SCANNER_SCHEDULE`; blank omits the env var, leaving Navidrome's own default (scheduled scans disabled — the file-watcher still triggers scans on change).
+  - "Log Level" (select: error/warn/info/debug/trace, default `info`): sets `ND_LOGLEVEL`, always explicitly.
+  - "Session Timeout" (text, optional, blank by default): idle web-UI session length, e.g. `24h` or `45m`. Sets `ND_SESSIONTIMEOUT`; blank omits the env var, leaving Navidrome's own default (`48h`).
+- **Behavior**: when scrobbling is enabled, `startos/main.ts` resolves Multi-Scrobbler's bridge address (imported from `multi-scrobbler-startos`'s `uiHostId`/`uiPort`) and sets `ND_LISTENBRAINZ_ENABLED=true` and `ND_LISTENBRAINZ_BASEURL=http://<bridge-address>/1/` on the daemon. If Multi-Scrobbler isn't installed or isn't running, the bridge address resolves to `null` and **both env vars are omitted** — Navidrome falls back to its own defaults (real ListenBrainz, or disabled if you've turned that off yourself) rather than being pointed at a dead address. `ND_RECENTLYADDEDBYMODTIME` and `ND_LOGLEVEL` are always set explicitly from their inputs; `ND_SCANNER_SCHEDULE` and `ND_SESSIONTIMEOUT` are only set when their text field is non-blank. Changing any setting restarts the daemon.
 - **Outputs**: none (updates `store.json`; takes effect on next daemon start/restart).
 
 ## Backups and Restore
@@ -153,7 +164,7 @@ All three are optional:
 
 - **File Browser** (`filebrowser`) — `kind: exists`. Mounts its `data` volume read-only at `/music/filebrowser`. Selected as a music source via **Select Music Sources**.
 - **Nextcloud** (`nextcloud`) — `kind: exists`. Mounts its `nextcloud` volume read-only at `/music/nextcloud`. Selected as a music source via **Select Music Sources**.
-- **Multi-Scrobbler** (`multi-scrobbler`) — `kind: running`, `healthChecks: ['multi-scrobbler']`. Enabled as a scrobble destination via **Configure Scrobbling**; this dependency is only declared while that toggle is on.
+- **Multi-Scrobbler** (`multi-scrobbler`) — `kind: running`, `healthChecks: ['multi-scrobbler']`. Enabled as a scrobble destination via **Configure Navidrome**; this dependency is only declared while that toggle is on.
 
 At least one of File Browser/Nextcloud must be selected via the **Select Music Sources** action before the daemon will start.
 
@@ -185,9 +196,9 @@ ports:
   ui: 4533
   api: 4533
 dependencies: [filebrowser, nextcloud, multi-scrobbler]
-startos_managed_env_vars: [ND_LISTENBRAINZ_ENABLED, ND_LISTENBRAINZ_BASEURL]
+startos_managed_env_vars: [ND_MUSICFOLDER, ND_LISTENBRAINZ_ENABLED, ND_LISTENBRAINZ_BASEURL, ND_RECENTLYADDEDBYMODTIME, ND_LOGLEVEL, ND_SCANNER_SCHEDULE, ND_SESSIONTIMEOUT]
 actions:
   - media-sources
   - import-database
-  - scrobbling
+  - settings
 ```
