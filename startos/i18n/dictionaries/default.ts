@@ -43,7 +43,7 @@ const dict = {
   'Sort "Recently Added" by File Modification Time': 31,
   'By default, Navidrome\'s "Recently Added" sorts by when a track was imported into the database. Enable this to sort by the file\'s modification time on disk instead — useful if you\'re importing an existing library and want "recently added" to reflect when the files themselves were added, not when Navidrome scanned them. Sets ND_RECENTLYADDEDBYMODTIME.': 32,
   'Scanner Schedule': 33,
-  'Cron expression for automatic library rescans (e.g. "0 */6 * * *" for every 6 hours). Leave blank to disable scheduled scans. Sets ND_SCANNER_SCHEDULE.': 34,
+  'Standard 5-field cron expression for automatic library rescans: minute(0-59) hour(0-23) day-of-month(1-31) month(1-12) day-of-week(0-6, Sun=0), each either a number or *. E.g. "*/2 * * * *" for every 2 minutes, or "0 */6 * * *" for every 6 hours. Leave blank to disable scheduled scans. Sets ND_SCANNER_SCHEDULE.': 34,
   'Log Level': 35,
   'Verbosity of Navidrome logs, viewable via the service Logs tab. Sets ND_LOGLEVEL.': 36,
   Error: 37,
@@ -52,7 +52,12 @@ const dict = {
   Debug: 40,
   Trace: 41,
   'Session Timeout': 42,
-  'How long an idle web UI session stays logged in. Accepts durations like "24h" or "45m". Leave blank to use Navidrome\'s own default (48h). Sets ND_SESSIONTIMEOUT.': 43,
+  'How long an idle web UI session stays logged in. Only s (seconds), m (minutes), or h (hours) are accepted, e.g. "45m" or "2h" — other unit names (like "min") will crash Navidrome. Leave blank to use Navidrome\'s own default (48h). Sets ND_SESSIONTIMEOUT.': 43,
+  // actions/mediaSources.ts
+  'Could not find "${subpath}" in ${label}. Check the path and that it\'s installed, then try again.': 44,
+  // actions/settings.ts
+  'Must be a number followed by s, m, or h (e.g. "45m", "2h", or "1h30m").': 45,
+  'Must be 5 space-separated cron fields (minute hour day month weekday), each a number, *, or a */step, e.g. "*/2 * * * *".': 46,
 } as const
 
 /**

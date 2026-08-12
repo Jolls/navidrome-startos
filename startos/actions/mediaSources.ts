@@ -1,3 +1,6 @@
+import { T } from '@start9labs/start-sdk'
+import { manifest as filebrowserManifest } from 'filebrowser-startos/startos/manifest'
+import { manifest as nextcloudManifest } from 'nextcloud-startos/startos/manifest'
 import { store } from '../fileModels/store.json'
 import { i18n } from '../i18n'
 import { sdk } from '../sdk'
@@ -17,7 +20,7 @@ export const inputSpec = InputSpec.of({
   filebrowserSubpath: Value.text({
     name: i18n('File Browser Subfolder'),
     description: i18n(
-      "Path within File Browser's storage to scan for music, relative to its root (e.g. \"Music\"). Required when File Browser is selected above.",
+      'Path within File Browser\'s storage to scan for music, relative to its root (e.g. "Music"). Required when File Browser is selected above.',
     ),
     required: false,
     default: null,
@@ -58,30 +61,90 @@ export const mediaSources = sdk.Action.withInput(
   },
 
   async ({ effects, input }) => {
-    if (
-      input.mediaSources.includes('filebrowser') &&
-      !input.filebrowserSubpath?.trim()
-    ) {
+    const filebrowserSubpath = input.filebrowserSubpath?.trim() || null
+    const nextcloudSubpath = input.nextcloudSubpath?.trim() || null
+
+    if (input.mediaSources.includes('filebrowser') && !filebrowserSubpath) {
       throw new Error(
         i18n(
           'A File Browser subfolder is required when File Browser is selected as a music source.',
         ),
       )
     }
-    if (
-      input.mediaSources.includes('nextcloud') &&
-      !input.nextcloudSubpath?.trim()
-    ) {
+    if (input.mediaSources.includes('nextcloud') && !nextcloudSubpath) {
       throw new Error(
         i18n(
           'A Nextcloud subfolder is required when Nextcloud is selected as a music source.',
         ),
       )
     }
+
+    if (input.mediaSources.includes('filebrowser')) {
+      await checkSubpathExists(effects, {
+        label: i18n('File Browser'),
+        subpath: filebrowserSubpath!,
+        mount: sdk.Mounts.of().mountDependency<typeof filebrowserManifest>({
+          dependencyId: 'filebrowser',
+          volumeId: 'data',
+          subpath: filebrowserSubpath!,
+          mountpoint: '/check',
+          readonly: true,
+        }),
+      })
+    }
+    if (input.mediaSources.includes('nextcloud')) {
+      await checkSubpathExists(effects, {
+        label: i18n('Nextcloud'),
+        subpath: nextcloudSubpath!,
+        mount: sdk.Mounts.of().mountDependency<typeof nextcloudManifest>({
+          dependencyId: 'nextcloud',
+          volumeId: 'nextcloud',
+          subpath: nextcloudSubpath!,
+          mountpoint: '/check',
+          readonly: true,
+        }),
+      })
+    }
+
     await store.merge(effects, {
       mediaSources: input.mediaSources,
-      filebrowserSubpath: input.filebrowserSubpath?.trim() || null,
-      nextcloudSubpath: input.nextcloudSubpath?.trim() || null,
+      filebrowserSubpath,
+      nextcloudSubpath,
     })
   },
 )
+
+// Bind-mounting a nonexistent subpath fails outright (the OS only creates the
+// mount target, not the source) — so mounting the configured subpath into a
+// throwaway subcontainer is a cheap, reliable existence check. Catching this
+// here, before the config is saved, turns a confusing "web UI never comes up"
+// daemon-startup failure into an immediate, actionable validation error.
+async function checkSubpathExists(
+  effects: T.Effects,
+  {
+    label,
+    subpath,
+    mount,
+  }: {
+    label: string
+    subpath: string
+    mount: ReturnType<typeof sdk.Mounts.of>
+  },
+) {
+  try {
+    await sdk.SubContainer.withTemp(
+      effects,
+      { imageId: 'navidrome' },
+      mount,
+      'check-subpath',
+      async () => {},
+    )
+  } catch {
+    throw new Error(
+      i18n(
+        'Could not find "${subpath}" in ${label}. Check the path and that it\'s installed, then try again.',
+        { label, subpath },
+      ),
+    )
+  }
+}

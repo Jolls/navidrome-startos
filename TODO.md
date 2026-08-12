@@ -40,13 +40,22 @@ Package is built out and `tsc`/`s9pk pack` are green, and is installed on the de
 
 ## Still pending
 
-- [ ] Confirm the **Select Music Sources** save is rejected when a selected source's
-      subfolder is left blank, and confirm the daemon throws its "no subfolder
-      configured" error if `store.json` somehow ends up with a source selected but no
-      subpath (shouldn't happen via the action, but the guard in `main.ts` is untested).
-- [ ] Create the admin account through Navidrome's own first-run screen; confirm login.
-- [ ] Copy the **Subsonic API** interface URL into a real Subsonic-compatible client and
-      confirm it connects.
+- [x] Confirm the **Select Music Sources** save is rejected when a selected source's
+      subfolder is left blank: **works**, confirmed on `navidrome-test` (2026-08-11).
+      Not separately re-confirmed: the daemon's own "no subfolder configured" guard in
+      `main.ts`, for the case where `store.json` somehow ends up with a source selected
+      but no subpath (shouldn't happen via the action, but the guard itself is
+      untested).
+- [x] Confirm **Select Music Sources** rejects a subfolder that doesn't exist: **works**,
+      confirmed on `navidrome-test` (2026-08-11) — a nonexistent path is caught by the
+      new pre-save `SubContainer.withTemp` existence check and rejected with a clear
+      error, instead of saving and leaving the daemon unable to start.
+- [x] Create the admin account through Navidrome's own first-run screen; confirm login:
+      **works**, confirmed on the dev box (2026-08-11) — account shows "is admin" in
+      Navidrome's own UI.
+- [x] Copy the **Subsonic API** interface URL into a real Subsonic-compatible client and
+      confirm it connects: **works**, confirmed against a real Android Subsonic client
+      (2026-08-11).
 - [ ] Exercise **Import Existing Database** (blocked, see above): stop the service,
       upload a `navidrome.db` (ideally from a second real instance pointed at the
       *same* subfolder path), confirm playlists/users/history carry over and stale
@@ -63,20 +72,40 @@ Package is built out and `tsc`/`s9pk pack` are green, and is installed on the de
       behavior when Multi-Scrobbler is stopped/uninstalled while the toggle is still
       enabled (should not crash-loop; env vars should drop per service-to-service.md's
       "absent means absent" rule).
-- [ ] Exercise the **Sort "Recently Added" by File Modification Time** toggle in the
-      same action: enable it, restart, confirm `ND_RECENTLYADDEDBYMODTIME=true` lands
-      in the running container (`start-cli package attach navidrome -n navidrome-sub
-      -- env | grep RECENTLYADDED`) and that Navidrome's "Recently Added" view actually
-      reorders by file mtime instead of import time.
-- [ ] Exercise the new **Scanner Schedule**, **Log Level**, and **Session Timeout**
-      fields in **Configure Navidrome**: set a cron expression, confirm
-      `ND_SCANNER_SCHEDULE` lands in the container and a scheduled scan actually fires;
-      set Log Level to `debug`, confirm log verbosity visibly changes in the Logs tab;
-      set a short Session Timeout (e.g. `2m`), confirm the web UI session actually
-      expires around that mark. Also confirm leaving Scanner Schedule/Session Timeout
-      blank correctly omits `ND_SCANNER_SCHEDULE`/`ND_SESSIONTIMEOUT` from the
-      container's env (`start-cli package attach navidrome -n navidrome-sub -- env |
-      grep -E 'SCANNER_SCHEDULE|SESSIONTIMEOUT'`) rather than sending an empty string.
-- [ ] Confirm `ND_MUSICFOLDER=/music` (now set explicitly in `main.ts` rather than
+- [x] Exercise the **Sort "Recently Added" by File Modification Time** toggle: **works**
+      as coded — `ND_RECENTLYADDEDBYMODTIME=true` landed and "Recently Added" reordered
+      by file mtime as designed. Not a bug: the resulting sort order just wasn't
+      preferred, so it's being left off by choice, not left broken.
+- [x] Exercise the new **Scanner Schedule** field in **Configure Navidrome**: **works**,
+      confirmed on `navidrome-test` (2026-08-11) — `*/2 * * * *` produced a scan every 2
+      minutes in the Logs tab (`Scanner: Starting scan` at `:42:00` and `:44:00`). Cron's
+      5-field order (minute hour day month weekday) is easy to get backwards — the
+      field's description now spells out each field, and a garbage value (`banana`) is
+      rejected at save time by a new cron pattern validation
+      (`startos/actions/settings.ts`).
+- [x] Exercise the new **Log Level** field: **works**, confirmed on `navidrome-test`
+      (2026-08-11) — setting `debug` visibly increased log verbosity (per-phase scanner
+      timing, DB/connection debug lines) versus the sparse `info` default.
+- [x] Exercise the new **Session Timeout** field: value handling confirmed on
+      `navidrome-test` (2026-08-11) — `2min` (invalid Go duration unit) originally
+      crash-looped the daemon (`FATAL: 'SessionTimeout' time: unknown unit`); added a
+      pattern validation (`^([0-9]+(s|m|h))+$`) plus a footnote on accepted units, both
+      confirmed rejecting `2min` at save time, and `2m`/`10s` save and start cleanly.
+      Idle-expiry behavior also confirmed (2026-08-11): enforcement is reactive, not a
+      live countdown — a tab left idle past a `10s` timeout stayed visually logged in
+      until the next interaction (click/navigate), which then correctly bounced to the
+      login screen. Expected JWT-expiry behavior, not a bug.
+- [x] Confirm leaving **Scanner Schedule**/**Session Timeout** blank correctly omits
+      `ND_SCANNER_SCHEDULE`/`ND_SESSIONTIMEOUT` from the container's env: **works**,
+      confirmed on the live `navidrome` instance (2026-08-11), which already has both
+      fields blank — `cat /proc/<navidrome-pid>/environ` shows neither var present
+      (checked via `ND_` grep of the real process env, not `package attach -- env`,
+      which reflects the container's namespace env rather than the daemon's own
+      `exec.env`).
+- [x] Confirm `ND_MUSICFOLDER=/music` (now set explicitly in `main.ts` rather than
       relying on the image default) doesn't change scanning behavior versus the
-      previous implicit-default build — should be a no-op verification.
+      previous implicit-default build: **confirmed no-op**, verified on the live
+      `navidrome` instance (2026-08-12) — `/proc/<navidrome-pid>/environ` shows
+      `ND_MUSICFOLDER=/music` present, `/music/nextcloud` mounted and populated, scan
+      logs show normal completions, and Navidrome's own insights telemetry reports a
+      healthy library (20,309 tracks, 1,766 albums, 2,870 artists, 11 playlists).

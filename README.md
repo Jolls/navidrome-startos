@@ -72,7 +72,9 @@ connect to it. See <https://github.com/navidrome/navidrome>.
     directly) is missing the `data/` prefix and fails to mount — StartOS's
     bind-mount only creates the mount target, not the source, so a
     nonexistent source subpath fails with `mount exited with exit status: 32`
-    rather than mounting an empty directory.
+    rather than mounting an empty directory. **Select Music Sources** now
+    checks for exactly this before saving (see [Actions](#actions-startos-ui)),
+    so a bad path is rejected at config time rather than surfacing here.
 
 ## Installation and First-Run Flow
 
@@ -123,6 +125,7 @@ Subsonic API alongside the web player on one port.
 - **Visibility**: always visible.
 - **Availability**: any service status.
 - **Inputs**: multi-select (at least one source required) plus a free-text subfolder path per source, relative to that dependency's volume root. The handler rejects the save if a selected source's subfolder is blank.
+- **Validation**: before saving, the handler mounts each selected source's subfolder into a throwaway subcontainer (`sdk.SubContainer.withTemp`) to confirm it actually exists — a nonexistent path fails the bind mount outright, so this catches a typo immediately with a clear error instead of letting it through to a daemon that then can't start (see `startos/actions/mediaSources.ts`).
 - **Outputs**: none (updates `store.json`; takes effect on next daemon start/restart).
 
 ### Import Existing Database
@@ -142,9 +145,9 @@ Subsonic API alongside the web player on one port.
 - **Inputs**:
   - "Scrobble to Multi-Scrobbler" (toggle, default off): enable scrobbling every play to the optional Multi-Scrobbler dependency, by pointing Navidrome's built-in ListenBrainz integration at Multi-Scrobbler's ListenBrainz-compatible submission endpoint instead of the real listenbrainz.org.
   - 'Sort "Recently Added" by File Modification Time' (toggle, default off): sets `ND_RECENTLYADDEDBYMODTIME`. Switches "Recently Added" from sorting by database-import time to sorting by each file's on-disk modification time — useful when importing an existing library.
-  - "Scanner Schedule" (text, optional, blank by default): a cron expression for automatic library rescans (e.g. `0 */6 * * *`). Sets `ND_SCANNER_SCHEDULE`; blank omits the env var, leaving Navidrome's own default (scheduled scans disabled — the file-watcher still triggers scans on change).
+  - "Scanner Schedule" (text, optional, blank by default): a standard 5-field cron expression for automatic library rescans (e.g. `*/2 * * * *`, `0 */6 * * *`). Sets `ND_SCANNER_SCHEDULE`; blank omits the env var, leaving Navidrome's own default (scheduled scans disabled — the file-watcher still triggers scans on change). Validated against a cron-shape pattern before saving, so a malformed value is rejected at save time rather than silently misread.
   - "Log Level" (select: error/warn/info/debug/trace, default `info`): sets `ND_LOGLEVEL`, always explicitly.
-  - "Session Timeout" (text, optional, blank by default): idle web-UI session length, e.g. `24h` or `45m`. Sets `ND_SESSIONTIMEOUT`; blank omits the env var, leaving Navidrome's own default (`48h`).
+  - "Session Timeout" (text, optional, blank by default): idle web-UI session length as a Go duration — only `s`/`m`/`h` units are accepted (e.g. `24h`, `45m`); other unit names (like `min`) are rejected at save time, since Navidrome itself would otherwise fail to parse the config and crash-loop. Sets `ND_SESSIONTIMEOUT`; blank omits the env var, leaving Navidrome's own default (`48h`).
 - **Behavior**: when scrobbling is enabled, `startos/main.ts` resolves Multi-Scrobbler's bridge address (imported from `multi-scrobbler-startos`'s `uiHostId`/`uiPort`) and sets `ND_LISTENBRAINZ_ENABLED=true` and `ND_LISTENBRAINZ_BASEURL=http://<bridge-address>/1/` on the daemon. If Multi-Scrobbler isn't installed or isn't running, the bridge address resolves to `null` and **both env vars are omitted** — Navidrome falls back to its own defaults (real ListenBrainz, or disabled if you've turned that off yourself) rather than being pointed at a dead address. `ND_RECENTLYADDEDBYMODTIME` and `ND_LOGLEVEL` are always set explicitly from their inputs; `ND_SCANNER_SCHEDULE` and `ND_SESSIONTIMEOUT` are only set when their text field is non-blank. Changing any setting restarts the daemon.
 - **Outputs**: none (updates `store.json`; takes effect on next daemon start/restart).
 

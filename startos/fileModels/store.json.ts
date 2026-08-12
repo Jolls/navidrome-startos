@@ -8,9 +8,7 @@ const shape = z.object({
   scrobbleToMultiScrobbler: z.boolean().catch(false),
   recentlyAddedByModTime: z.boolean().catch(false),
   scannerSchedule: z.string().nullable().catch(null),
-  logLevel: z
-    .enum(['error', 'warn', 'info', 'debug', 'trace'])
-    .catch('info'),
+  logLevel: z.enum(['error', 'warn', 'info', 'debug', 'trace']).catch('info'),
   sessionTimeout: z.string().nullable().catch(null),
 })
 

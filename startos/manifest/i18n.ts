@@ -40,9 +40,14 @@ export const nextcloudDescription = {
 }
 
 export const multiScrobblerDescription = {
-  en_US: 'Optional scrobble destination — used if you enable Scrobble to Multi-Scrobbler',
-  es_ES: 'Destino opcional de scrobbles — usado si habilitas Scrobble a Multi-Scrobbler',
-  de_DE: 'Optionales Scrobble-Ziel — genutzt, wenn "Scrobble zu Multi-Scrobbler" aktiviert ist',
-  pl_PL: 'Opcjonalny cel scrobblowania — używany, gdy włączysz Scrobble do Multi-Scrobbler',
-  fr_FR: 'Destination de scrobble facultative — utilisée si vous activez Scrobble vers Multi-Scrobbler',
+  en_US:
+    'Optional scrobble destination — used if you enable Scrobble to Multi-Scrobbler',
+  es_ES:
+    'Destino opcional de scrobbles — usado si habilitas Scrobble a Multi-Scrobbler',
+  de_DE:
+    'Optionales Scrobble-Ziel — genutzt, wenn "Scrobble zu Multi-Scrobbler" aktiviert ist',
+  pl_PL:
+    'Opcjonalny cel scrobblowania — używany, gdy włączysz Scrobble do Multi-Scrobbler',
+  fr_FR:
+    'Destination de scrobble facultative — utilisée si vous activez Scrobble vers Multi-Scrobbler',
 }
