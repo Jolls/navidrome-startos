@@ -6,7 +6,10 @@ import { sdk } from '../sdk'
 
 const { InputSpec, Value } = sdk
 
-// Concurrent uploads must not replace the file being validated.
+// Each form gets its own path, so a concurrent upload can't replace the file
+// being validated. main sweeps whatever an abandoned import leaves behind.
+export const stagedPrefix = 'navidrome.db.import-'
+
 export const inputSpec = async ({ effects }: { effects: T.Effects }) =>
   InputSpec.of({
     databaseFile: Value.file({
@@ -16,7 +19,7 @@ export const inputSpec = async ({ effects }: { effects: T.Effects }) =>
       ),
       uploadId: await sdk.prepareUpload(effects, {
         volume: 'main',
-        path: `navidrome.db.import-${randomUUID()}`,
+        path: `${stagedPrefix}${randomUUID()}`,
         mode: 0o644,
       }),
       extensions: ['.db'],
