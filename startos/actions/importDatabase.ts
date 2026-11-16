@@ -1,14 +1,12 @@
 import { types as T } from '@start9labs/start-sdk'
+import { randomUUID } from 'node:crypto'
 import { promises as fs } from 'node:fs'
 import { i18n } from '../i18n'
 import { sdk } from '../sdk'
 
 const { InputSpec, Value } = sdk
 
-// Staged beside the live database so the header check runs before anything is
-// replaced, and the final rename stays on one filesystem.
-const stagedName = 'navidrome.db.import'
-
+// Concurrent uploads must not replace the file being validated.
 export const inputSpec = async ({ effects }: { effects: T.Effects }) =>
   InputSpec.of({
     databaseFile: Value.file({
@@ -18,7 +16,7 @@ export const inputSpec = async ({ effects }: { effects: T.Effects }) =>
       ),
       uploadId: await sdk.prepareUpload(effects, {
         volume: 'main',
-        path: stagedName,
+        path: `navidrome.db.import-${randomUUID()}`,
         mode: 0o644,
       }),
       extensions: ['.db'],
