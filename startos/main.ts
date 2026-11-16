@@ -5,6 +5,8 @@ import {
 } from 'multi-scrobbler-startos/startos/utils'
 import { manifest as nextcloudManifest } from 'nextcloud-startos/startos/manifest'
 import { manifest as nextexplorerManifest } from 'nextexplorer-startos/startos/manifest'
+import { promises as fs } from 'node:fs'
+import { stagedPrefix } from './actions/importDatabase'
 import { store } from './fileModels/store.json'
 import { i18n } from './i18n'
 import { sdk } from './sdk'
@@ -12,6 +14,13 @@ import { uiPort } from './utils'
 
 export const main = sdk.setupMain(async ({ effects }) => {
   console.info(i18n('Starting Navidrome!'))
+
+  // Import runs only while stopped, so any staged upload here is abandoned.
+  for (const name of await fs.readdir(sdk.volumes.main.subpath('.'))) {
+    if (name.startsWith(stagedPrefix)) {
+      await fs.rm(sdk.volumes.main.subpath(name), { force: true })
+    }
+  }
 
   const {
     mediaSources,

@@ -1,7 +1,7 @@
 {
   "name": "navidrome-startos",
   "dependencies": {
-    "@start9labs/start-sdk": "3.1.1",
+    "@start9labs/start-sdk": "4.1.0",
     "filebrowser-quantum-startos": "github:Start9Labs/filebrowser-quantum-startos#next",
     "multi-scrobbler-startos": "github:Start9-Community/multi-scrobbler-startos#next",
     "nextcloud-startos": "github:Start9Labs/nextcloud-startos#next",

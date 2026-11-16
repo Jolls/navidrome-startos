@@ -1,18 +1,18 @@
 import { IMPOSSIBLE, VersionInfo } from '@start9labs/start-sdk'
 
 export const current = VersionInfo.of({
-  version: '0.64.2:4',
+  version: '0.64.2:5',
   releaseNotes: {
     en_US:
-      'FileBrowser integration now requires FileBrowser Quantum 2.0.2-stable:3 or later; the original File Browser is no longer supported. If you use the original File Browser, switch it in the Marketplace: open File Browser, then under Alternative Implementations choose FileBrowser Quantum and select Switch. Your files and accounts carry over, but back up File Browser first; afterwards, re-apply per-user folder restrictions and access rules, and recreate share links.',
+      "Import Existing Database works, and refuses a file that isn't a SQLite database without touching the current one. Requires StartOS 0.4.2 or later. Now maintained by Start9 and published in the Start9 Registry.",
     es_ES:
-      'La integración con FileBrowser ahora requiere FileBrowser Quantum 2.0.2-stable:3 o posterior; el File Browser original ya no es compatible. Si usas el File Browser original, cámbialo en el Mercado: abre File Browser y, en Implementaciones alternativas, elige FileBrowser Quantum y selecciona Cambiar. Tus archivos y cuentas se conservan, pero haz antes una copia de seguridad de File Browser; después, vuelve a aplicar las restricciones de carpeta por usuario y las reglas de acceso, y crea de nuevo los enlaces compartidos.',
+      'Importar Base de Datos Existente funciona y rechaza un archivo que no sea una base de datos SQLite sin tocar la actual. Requiere StartOS 0.4.2 o posterior. Ahora lo mantiene Start9 y se publica en el Start9 Registry.',
     de_DE:
-      'Die FileBrowser-Integration erfordert jetzt FileBrowser Quantum 2.0.2-stable:3 oder neuer; der ursprüngliche File Browser wird nicht mehr unterstützt. Wenn Sie den ursprünglichen File Browser verwenden, wechseln Sie im Marktplatz: Öffnen Sie File Browser, wählen Sie unter Alternative Implementierungen FileBrowser Quantum und anschließend Wechseln. Ihre Dateien und Konten bleiben erhalten, aber sichern Sie File Browser vorher; richten Sie danach benutzerbezogene Ordnerbeschränkungen und Zugriffsregeln erneut ein und erstellen Sie Freigabelinks neu.',
+      'Vorhandene Datenbank importieren funktioniert und weist eine Datei, die keine SQLite-Datenbank ist, zurück, ohne die aktuelle anzutasten. Erfordert StartOS 0.4.2 oder neuer. Wird jetzt von Start9 gepflegt und in der Start9 Registry veröffentlicht.',
     pl_PL:
-      'Integracja z FileBrowser wymaga teraz FileBrowser Quantum 2.0.2-stable:3 lub nowszego; oryginalny File Browser nie jest już obsługiwany. Jeśli używasz oryginalnego File Browser, przełącz go w Sklepie: otwórz File Browser, w sekcji Alternatywne implementacje wybierz FileBrowser Quantum i kliknij Przełącz. Twoje pliki i konta zostaną zachowane, ale najpierw wykonaj kopię zapasową File Browser; potem ponownie ustaw ograniczenia folderów przypisane do użytkowników i reguły dostępu oraz utwórz nowe linki udostępniania.',
+      'Importuj istniejącą bazę danych działa i odrzuca plik, który nie jest bazą danych SQLite, bez naruszania bieżącej. Wymaga StartOS 0.4.2 lub nowszego. Teraz utrzymywany przez Start9 i publikowany w Start9 Registry.',
     fr_FR:
-      'L’intégration FileBrowser nécessite désormais FileBrowser Quantum 2.0.2-stable:3 ou une version ultérieure ; le File Browser d’origine n’est plus pris en charge. Si vous utilisez le File Browser d’origine, changez-le dans la Bibliothèque de services : ouvrez File Browser, puis sous Implémentations alternatives choisissez FileBrowser Quantum et sélectionnez Changer. Vos fichiers et comptes sont conservés, mais sauvegardez d’abord File Browser ; ensuite, réappliquez les restrictions de dossier par utilisateur et les règles d’accès, puis recréez les liens de partage.',
+      'Importer une base de données existante fonctionne et refuse un fichier qui n’est pas une base de données SQLite sans toucher à la base actuelle. Nécessite StartOS 0.4.2 ou une version ultérieure. Désormais maintenu par Start9 et publié dans le Start9 Registry.',
   },
   migrations: {
     up: async ({ effects }) => {},

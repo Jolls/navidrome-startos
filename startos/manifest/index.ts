@@ -5,7 +5,7 @@ export const manifest = setupManifest({
   id: 'navidrome',
   title: 'Navidrome',
   license: 'GPL-3.0',
-  packageRepo: 'https://github.com/Start9-Community/navidrome-startos',
+  packageRepo: 'https://github.com/Start9Labs/navidrome-startos',
   upstreamRepo: 'https://github.com/navidrome/navidrome',
   marketingUrl: 'https://www.navidrome.org',
   donationUrl: 'https://github.com/sponsors/deluan',

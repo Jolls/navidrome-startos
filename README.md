@@ -139,7 +139,7 @@ It also fails while Multi-Scrobbler's **Set Web UI Password** gate is on: StartO
 
 For migrating from another Navidrome instance instead of rescanning. Runs only while stopped, since it replaces the SQLite file underneath the daemon, and it is **destructive on the current database with no undo**. Repeating it simply replaces the database again.
 
-It writes the uploaded file to `/data/navidrome.db` and deletes any stale `navidrome.db-wal` / `navidrome.db-shm`, so SQLite cannot replay a WAL log belonging to the previous database. Cost scales with the file; a large library's database is tens of megabytes.
+StartOS uploads each file to a distinct `/data/navidrome.db.import-<uuid>` path before the handler runs (no size limit), keeping concurrent forms' uploads isolated; one left behind by an abandoned import is deleted the next time Navidrome starts. The handler checks the SQLite header — deleting the staged file and failing if it doesn't match — then renames it over `/data/navidrome.db` and deletes any stale `navidrome.db-wal` / `navidrome.db-shm`, so SQLite cannot replay a WAL log belonging to the previous database. Upload time scales with the file; a large library's database runs to hundreds of megabytes.
 
 The imported database records each track by its exact scanned path, so it only lines up if the subfolders configured in **Select Music Sources** match the source instance's. A mismatch is not destructive — tracks show as missing until a rescan.
 
