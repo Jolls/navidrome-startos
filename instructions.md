@@ -3,7 +3,7 @@
 ## Documentation
 
 - [Getting started](https://www.navidrome.org/docs/getting-started/) — creating your admin account and a tour of the web player.
-- [Navidrome usage docs](https://www.navidrome.org/docs/usage/getting-started/) — playlists, users, scanning, and other day-to-day features.
+- [Navidrome usage docs](https://www.navidrome.org/docs/usage/) — playlists, users, scanning, and other day-to-day features.
 - [Subsonic-compatible apps](https://www.navidrome.org/docs/overview/#apps) — mobile and desktop clients you can point at your server.
 
 ## What you get on StartOS
