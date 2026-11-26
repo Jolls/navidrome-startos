@@ -133,7 +133,7 @@ Deliberately limited to settings with **no equivalent in Navidrome's own admin U
 
 Enabling **Scrobble to Multi-Scrobbler** is not sufficient on its own — a matching token must be entered by hand in both applications' own UIs, as `instructions.md` describes. Symptom of skipping it: scrobbles are submitted and silently rejected.
 
-It also fails while Multi-Scrobbler's **Set Web UI Password** gate is on: StartOS enforces that gate on the bridge address too, and Navidrome's ListenBrainz client sends its own `Authorization: Token` header, so every submission gets `401`.
+Multi-Scrobbler's own admin login (its package since 0.21.1:0) doesn't cover the ListenBrainz `/1/` endpoint, so it has no effect here. Before 0.21.1:0 its package had a **Set Web UI Password** gate instead, and scrobbling fails while it is on: StartOS enforces that gate on the bridge address too, and Navidrome's ListenBrainz client sends its own `Authorization: Token` header, so every submission gets `401`. The dependency's version range still admits those releases.
 
 ### Import Existing Database
 

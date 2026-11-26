@@ -64,7 +64,7 @@ The scrobbling toggle alone is not enough to make scrobbles land — you still h
 
 The two tokens must match — Multi-Scrobbler accepts a submission as coming from that source only when its token matches what's configured. This is a one-time, per-user setup step.
 
-Scrobbling doesn't work while Multi-Scrobbler has a Web UI password set: Navidrome can't send that login, so clear it in Multi-Scrobbler with **Clear Web UI Password**.
+Multi-Scrobbler's admin login doesn't affect this: Navidrome sends to an address the login doesn't cover. On Multi-Scrobbler versions before 0.21.1, scrobbling doesn't work while a Web UI password is set; update Multi-Scrobbler, or clear the password there with **Clear Web UI Password**.
 
 ## Limitations
 
